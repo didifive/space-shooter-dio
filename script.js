@@ -7,40 +7,41 @@ let alienInterval;
 
 //movimento e tiro da nave
 function flyShip(event) {
-    if(event.key === 'ArrowUp') {
-        event.preventDefault();
-        moveUp();
-    } else if(event.key === 'ArrowDown') {
-        event.preventDefault();
-        moveDown();
-    } else if(event.key === " ") {
-        event.preventDefault();
-        fireLaser();
+    switch (event.keyCode) {
+        case 38:    //↑ - ArrowUp
+        case 87:    //W
+            event.preventDefault();
+            moveUp();
+            break;
+        case 40:    //↓ - ArrowDown
+        case 83:    //S
+            event.preventDefault();
+            moveDown();
+            break;
+        case 32:    //Espaço
+        case 68:    //D
+            event.preventDefault();
+            fireLaser();
+            break;
+        default:
+            break;
     }
 }
 
 //função de subir
 function moveUp() {
-    let topPosition = getComputedStyle(yourShip).getPropertyValue('top');
-    if(topPosition === "0px") {
-        return
-    } else {
-        let position = parseInt(topPosition);
-        position -= 50;
-        yourShip.style.top = `${position}px`;
-    }
+    let topPosition = parseInt(getComputedStyle(yourShip).getPropertyValue('top'));
+    topPosition -= 30;
+    if(topPosition < 0) topPosition = 0;
+    yourShip.style.top = `${topPosition}px`;
 }
 
 //função de descer
 function moveDown() {
-    let topPosition = getComputedStyle(yourShip).getPropertyValue('top');
-    if(topPosition === "510px"){
-        return
-    } else {
-        let position = parseInt(topPosition);
-        position += 50;
-        yourShip.style.top = `${position}px`;
-    }
+    let topPosition = parseInt(getComputedStyle(yourShip).getPropertyValue('top'));
+    topPosition += 30;
+    if(topPosition > 540) topPosition = 540;
+    yourShip.style.top = `${topPosition}px`;
 }
 
 //funcionalidade de tiro
@@ -51,13 +52,13 @@ function fireLaser() {
 }
 
 function createLaserElement() {
-    let xPosition = parseInt(window.getComputedStyle(yourShip).getPropertyValue('left'));
-    let yPosition = parseInt(window.getComputedStyle(yourShip).getPropertyValue('top'));
+    let xPosition = parseInt(getComputedStyle(yourShip).getPropertyValue('left'));
+    let yPosition = parseInt(getComputedStyle(yourShip).getPropertyValue('top'));
     let newLaser = document.createElement('img');
     newLaser.src = 'img/shoot.png';
     newLaser.classList.add('laser');
     newLaser.style.left = `${xPosition}px`;
-    newLaser.style.top = `${yPosition - 10}px`;
+    newLaser.style.top = `${yPosition - 20}px`;
     return newLaser;
 }
 
@@ -74,11 +75,8 @@ function moveLaser(laser) {
             }
         })
 
-        if(xPosition === 340) {
-            laser.remove();
-        } else {
-            laser.style.left = `${xPosition + 8}px`;
-        }
+        if(xPosition >= 600) laser.remove();
+        else laser.style.left = `${xPosition + 5}px`;
     }, 10);
 }
 
@@ -98,8 +96,8 @@ function createAliens() {
 //função para movimentar os inimigos
 function moveAlien(alien) {
     let moveAlienInterval = setInterval(() => {
-        let xPosition = parseInt(window.getComputedStyle(alien).getPropertyValue('left'));
-        if(xPosition <= 50) {
+        let xPosition = parseInt(getComputedStyle(alien).getPropertyValue('left'));
+        if(xPosition <= 20) {
             if(Array.from(alien.classList).includes('dead-alien')) {
                 alien.remove();
             } else {
@@ -111,7 +109,7 @@ function moveAlien(alien) {
     }, 30);
 }
 
-//função para  colisão
+//função para colisão: Laser e Alien
 function checkLaserCollision(laser, alien) {
     let laserTop = parseInt(laser.style.top);
     let laserLeft = parseInt(laser.style.left);
@@ -119,7 +117,10 @@ function checkLaserCollision(laser, alien) {
     let alienTop = parseInt(alien.style.top);
     let alienLeft = parseInt(alien.style.left);
     let alienBottom = alienTop - 30;
-    if(laserLeft != 340 && laserLeft + 40 >= alienLeft) {
+    
+    if (laserLeft >= 600) return false;
+    
+    if(laserLeft + 40 >= alienLeft) {
         if(laserTop <= alienTop && laserTop >= alienBottom) {
             return true;
         } else {
